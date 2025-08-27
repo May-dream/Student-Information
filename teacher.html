@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生信息管理系统 - 教师后台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <header class="mb-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-800">学生信息管理系统</h1>
+                <div id="userInfo" class="hidden">
+                    <span class="mr-4 text-gray-600">教师登录</span>
+                    <button id="logoutBtn" class="text-primary hover:underline">退出</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 登录区域 -->
+        <div id="loginSection" class="bg-white rounded-xl shadow-md p-8 max-w-md mx-auto">
+            <h2 class="text-xl font-semibold text-center mb-6">教师登录</h2>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                    <input type="text" id="username" name="username" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none" required>
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                    <input type="password" id="password" name="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none" required>
+                </div>
+                <div class="error-message text-danger text-sm hidden" id="loginError"></div>
+                <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-md transition duration-200">
+                    登录
+                </button>
+            </form>
+        </div>
+
+        <!-- 管理区域 (默认隐藏) -->
+        <div id="managementSection" class="hidden">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                    <h2 class="text-xl font-semibold mb-4 md:mb-0">学生信息列表</h2>
+                    <div class="flex space-x-3">
+                        <button id="exportExcelBtn" class="bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center">
+                            <i class="fa fa-download mr-2"></i> 导出Excel
+                        </button>
+                        <button id="refreshBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-200 flex items-center">
+                            <i class="fa fa-refresh mr-2"></i> 刷新
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">序号</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">姓名</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">专业</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">班级</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">学号</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- 学生数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="noDataMessage" class="py-12 text-center hidden">
+                    <p class="text-gray-500">暂无学生数据</p>
+                </div>
+            </div>
+
+            <!-- 详情模态框 -->
+            <div id="detailModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-900">学生信息详情</h3>
+                        <button id="closeDetailModal" class="text-gray-500 hover:text-gray-700">
+                            <i class="fa fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div id="studentDetailContent" class="space-y-4">
+                        <!-- 学生详情将通过JavaScript动态加载 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM元素
+            const loginSection = document.getElementById('loginSection');
+            const managementSection = document.getElementById('managementSection');
+            const userInfo = document.getElementById('userInfo');
+            const loginForm = document.getElementById('loginForm');
+            const loginError = document.getElementById('loginError');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const studentTableBody = document.getElementById('studentTableBody');
+            const noDataMessage = document.getElementById('noDataMessage');
+            const exportExcelBtn = document.getElementById('exportExcelBtn');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const detailModal = document.getElementById('detailModal');
+            const closeDetailModal = document.getElementById('closeDetailModal');
+            const studentDetailContent = document.getElementById('studentDetailContent');
+
+            // 检查登录状态
+            checkLoginStatus();
+
+            // 登录表单提交
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                // 发送登录请求
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('登录失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 保存token
+                    localStorage.setItem('token', data.token);
+                    showManagementSection();
+                    loadStudentData();
+                })
+                .catch(error => {
+                    loginError.textContent = '用户名或密码错误';
+                    loginError.classList.remove('hidden');
+                });
+            });
+
+            // 退出登录
+            logoutBtn.addEventListener('click', function() {
+                localStorage.removeItem('token');
+                showLoginSection();
+            });
+
+            // 刷新数据
+            refreshBtn.addEventListener('click', function() {
+                loadStudentData();
+            });
+
+            // 导出Excel
+            exportExcelBtn.addEventListener('click', function() {
+                const token = localStorage.getItem('token');
+                fetch('/api/export-excel', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('导出失败');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // 创建下载链接
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `学生信息汇总_${new Date().toLocaleDateString()}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+                .catch(error => {
+                    alert('导出失败，请重试');
+                });
+            });
+
+            // 关闭详情模态框
+            closeDetailModal.addEventListener('click', function() {
+                detailModal.classList.add('hidden');
+            });
+
+            // 检查登录状态
+            function checkLoginStatus() {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    // 验证token有效性
+                    fetch('/api/verify-token', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            showManagementSection();
+                            loadStudentData();
+                        } else {
+                            localStorage.removeItem('token');
+                            showLoginSection();
+                        }
+                    })
+                    .catch(() => {
+                        localStorage.removeItem('token');
+                        showLoginSection();
+                    });
+                } else {
+                    showLoginSection();
+                }
+            }
+
+            // 显示登录区域
+            function showLoginSection() {
+                loginSection.classList.remove('hidden');
+                managementSection.classList.add('hidden');
+                userInfo.classList.add('hidden');
+            }
+
+            // 显示管理区域
+            function showManagementSection() {
+                loginSection.classList.add('hidden');
+                managementSection.classList.remove('hidden');
+                userInfo.classList.remove('hidden');
+            }
+
+            // 加载学生数据
+            function loadStudentData() {
+                const token = localStorage.getItem('token');
+                fetch('/api/students', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('获取数据失败');
+                    }
+                    return response.json();
+                })
+                .then(students => {
+                    renderStudentTable(students);
+                })
+                .catch(error => {
+                    alert('获取数据失败，请重试');
+                });
+            }
+
+            // 渲染学生表格
+            function renderStudentTable(students) {
+                studentTableBody.innerHTML = '';
+                
+                if (students.length === 0) {
+                    noDataMessage.classList.remove('hidden');
+                    return;
+                }
+                
+                noDataMessage.classList.add('hidden');
+                
+                students.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50 transition-colors';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">${student.serialNumber}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${student.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${student.major}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${student.className}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${student.studentId}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <button class="text-primary hover:text-primary/80 view-detail" data-id="${student.id}">
+                                <i class="fa fa-eye mr-1"></i> 查看详情
+                            </button>
+                        </td>
+                    `;
+                    studentTableBody.appendChild(row);
+                });
+
+                // 添加查看详情事件
+                document.querySelectorAll('.view-detail').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const studentId = this.getAttribute('data-id');
+                        showStudentDetail(studentId);
+                    });
+                });
+            }
+
+            // 显示学生详情
+            function showStudentDetail(studentId) {
+                const token = localStorage.getItem('token');
+                fetch(`/api/students/${studentId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('获取详情失败');
+                    }
+                    return response.json();
+                })
+                .then(student => {
+                    // 渲染详情内容
+                    studentDetailContent.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-500">序号</p>
+                                <p class="font-medium">${student.serialNumber}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">姓名</p>
+                                <p class="font-medium">${student.name}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">专业</p>
+                                <p class="font-medium">${student.major}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">班级</p>
+                                <p class="font-medium">${student.className}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">学号</p>
+                                <p class="font-medium">${student.studentId}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">性别</p>
+                                <p class="font-medium">${student.gender}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">民族</p>
+                                <p class="font-medium">${student.nationality}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">身份证号</p>
+                                <p class="font-medium">${student.idCard}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">出生年月</p>
+                                <p class="font-medium">${student.birthDate}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">宿舍</p>
+                                <p class="font-medium">${student.dormitory}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">家庭经济情况</p>
+                                <p class="font-medium">${student.economicStatus}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">户籍性质</p>
+                                <p class="font-medium">${student.householdType}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">籍贯</p>
+                                <p class="font-medium">${student.nativePlace}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">家庭住址</p>
+                                <p class="font-medium">${student.homeAddress}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">手机号</p>
+                                <p class="font-medium">${student.phone}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">父亲名字</p>
+                                <p class="font-medium">${student.fatherName}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">父亲手机号</p>
+                                <p class="font-medium">${student.fatherPhone}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">母亲姓名</p>
+                                <p class="font-medium">${student.motherName}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">母亲手机号</p>
+                                <p class="font-medium">${student.motherPhone}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">QQ号</p>
+                                <p class="font-medium">${student.qq}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">政治面貌</p>
+                                <p class="font-medium">${student.politicalStatus}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">特长</p>
+                                <p class="font-medium">${student.specialty}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">宗教信仰</p>
+                                <p class="font-medium">${student.religion}</p>
+                            </div>
+                        </div>
+                    `;
+                    detailModal.classList.remove('hidden');
+                })
+                .catch(error => {
+                    alert('获取详情失败，请重试');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
