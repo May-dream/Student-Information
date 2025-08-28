@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>学生信息管理系统 - 教师后台</title>
+    <title>教师管理后台</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -14,58 +13,132 @@
                     colors: {
                         primary: '#3B82F6',
                         secondary: '#10B981',
-                    }
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        light: '#F3F4F6',
+                        dark: '#1F2937'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
                 }
             }
         }
     </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .form-input-focus {
+                @apply focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none;
+            }
+            .form-label {
+                @apply block text-sm font-medium text-gray-700 mb-1;
+            }
+            .form-input {
+                @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm form-input-focus transition duration-200;
+            }
+            .table-row-hover {
+                @apply hover:bg-gray-50 transition-colors;
+            }
+            .toast {
+                @apply fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none;
+            }
+            .toast.show {
+                @apply opacity-100 translate-y-0 pointer-events-auto;
+            }
+            .toast-success {
+                @apply bg-secondary text-white;
+            }
+            .toast-error {
+                @apply bg-danger text-white;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
     <div class="container mx-auto px-4 py-8 max-w-6xl">
-        <header class="mb-8">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-gray-800">学生信息管理系统</h1>
-                <div id="userInfo" class="hidden">
-                    <span class="mr-4 text-gray-600">教师登录</span>
-                    <button id="logoutBtn" class="text-primary hover:underline">退出</button>
-                </div>
+        <!-- 登录界面 -->
+        <div id="loginSection" class="max-w-md mx-auto bg-white rounded-xl shadow-md p-8 mt-16">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-dark mb-2">教师管理后台</h1>
+                <p class="text-gray-500">请输入账号密码登录</p>
             </div>
-        </header>
-
-        <!-- 登录区域 -->
-        <div id="loginSection" class="bg-white rounded-xl shadow-md p-8 max-w-md mx-auto">
-            <h2 class="text-xl font-semibold text-center mb-6">教师登录</h2>
+            
             <form id="loginForm" class="space-y-4">
                 <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
-                    <input type="text" id="username" name="username" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none" required>
+                    <label for="username" class="form-label">用户名</label>
+                    <input type="text" id="username" name="username" class="form-input" required>
                 </div>
+                
                 <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">密码</label>
-                    <input type="password" id="password" name="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none" required>
+                    <label for="password" class="form-label">密码</label>
+                    <input type="password" id="password" name="password" class="form-input" required>
                 </div>
-                <div class="error-message text-danger text-sm hidden" id="loginError"></div>
-                <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-md transition duration-200">
-                    登录
-                </button>
+                
+                <div class="pt-2">
+                    <button type="submit" id="loginBtn" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-md transition duration-200">
+                        登录
+                    </button>
+                </div>
             </form>
+            
+            <div class="text-center text-sm text-gray-500 mt-4">
+                <p>默认账号：admin，密码：admin123</p>
+            </div>
         </div>
 
-        <!-- 管理区域 (默认隐藏) -->
-        <div id="managementSection" class="hidden">
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                    <h2 class="text-xl font-semibold mb-4 md:mb-0">学生信息列表</h2>
-                    <div class="flex space-x-3">
-                        <button id="exportExcelBtn" class="bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center">
-                            <i class="fa fa-download mr-2"></i> 导出Excel
-                        </button>
-                        <button id="refreshBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-200 flex items-center">
-                            <i class="fa fa-refresh mr-2"></i> 刷新
+        <!-- 管理界面（默认隐藏） -->
+        <div id="adminSection" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-dark">学生信息管理</h1>
+                <div class="flex space-x-3">
+                    <button id="exportBtn" class="bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center">
+                        <i class="fa fa-download mr-2"></i> 导出Excel
+                    </button>
+                    <button id="logoutBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-md transition duration-200">
+                        退出登录
+                    </button>
+                </div>
+            </div>
+
+            <!-- 数据统计 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="text-gray-500 text-sm">总提交人数</div>
+                    <div class="text-2xl font-bold text-primary mt-1" id="totalCount">0</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="text-gray-500 text-sm">今日新增</div>
+                    <div class="text-2xl font-bold text-secondary mt-1" id="todayCount">0</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="text-gray-500 text-sm">最后提交时间</div>
+                    <div class="text-lg font-medium mt-1" id="lastSubmitTime">暂无数据</div>
+                </div>
+            </div>
+
+            <!-- 搜索和筛选 -->
+            <div class="bg-white rounded-lg shadow p-4 mb-6">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <label for="searchInput" class="form-label">搜索（姓名/学号/专业）</label>
+                        <input type="text" id="searchInput" class="form-input" placeholder="输入关键词搜索...">
+                    </div>
+                    <div class="w-full md:w-48">
+                        <label for="majorFilter" class="form-label">按专业筛选</label>
+                        <select id="majorFilter" class="form-input">
+                            <option value="">所有专业</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-48 flex items-end">
+                        <button id="searchBtn" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-md transition duration-200">
+                            搜索
                         </button>
                     </div>
                 </div>
+            </div>
 
+            <!-- 学生列表 -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -75,65 +148,164 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">专业</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">班级</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">学号</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">提交时间</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                             </tr>
                         </thead>
-                        <tbody id="studentTableBody" class="bg-white divide-y divide-gray-200">
-                            <!-- 学生数据将通过JavaScript动态加载 -->
+                        <tbody class="bg-white divide-y divide-gray-200" id="studentTableBody">
+                            <!-- 学生数据将通过JS动态填充 -->
+                            <tr>
+                                <td colspan="7" class="px-6 py-10 text-center text-gray-500">
+                                    请先加载数据
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
-
-                <div id="noDataMessage" class="py-12 text-center hidden">
-                    <p class="text-gray-500">暂无学生数据</p>
-                </div>
-            </div>
-
-            <!-- 详情模态框 -->
-            <div id="detailModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
-                <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold text-gray-900">学生信息详情</h3>
-                        <button id="closeDetailModal" class="text-gray-500 hover:text-gray-700">
-                            <i class="fa fa-times text-xl"></i>
-                        </button>
+                
+                <!-- 分页 -->
+                <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                    <div class="text-sm text-gray-500">
+                        显示 <span id="showingRange">0-0</span> 条，共 <span id="totalItems">0</span> 条
                     </div>
-                    <div id="studentDetailContent" class="space-y-4">
-                        <!-- 学生详情将通过JavaScript动态加载 -->
+                    <div class="flex space-x-2">
+                        <button id="prevPage" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            上一页
+                        </button>
+                        <button id="nextPage" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            下一页
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- 学生详情模态框 -->
+    <div id="detailModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900">学生详细信息</h3>
+                <button id="closeDetailModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="studentDetailContent" class="space-y-4">
+                <!-- 详细信息将通过JS动态填充 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改密码模态框 -->
+    <div id="changePwdModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900">修改密码</h3>
+                <button id="closePwdModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="changePwdForm" class="space-y-4">
+                <div>
+                    <label for="oldPassword" class="form-label">原密码</label>
+                    <input type="password" id="oldPassword" name="oldPassword" class="form-input" required>
+                </div>
+                <div>
+                    <label for="newPassword" class="form-label">新密码</label>
+                    <input type="password" id="newPassword" name="newPassword" class="form-input" required minlength="6">
+                </div>
+                <div>
+                    <label for="confirmPassword" class="form-label">确认新密码</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" required>
+                    <div class="error-message" id="passwordMismatchError">两次输入的密码不一致</div>
+                </div>
+                <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-md transition duration-200">
+                    确认修改
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 提示消息组件 -->
+    <div id="toast" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // DOM元素
             const loginSection = document.getElementById('loginSection');
-            const managementSection = document.getElementById('managementSection');
-            const userInfo = document.getElementById('userInfo');
+            const adminSection = document.getElementById('adminSection');
             const loginForm = document.getElementById('loginForm');
-            const loginError = document.getElementById('loginError');
-            const logoutBtn = document.getElementById('logoutBtn');
             const studentTableBody = document.getElementById('studentTableBody');
-            const noDataMessage = document.getElementById('noDataMessage');
-            const exportExcelBtn = document.getElementById('exportExcelBtn');
-            const refreshBtn = document.getElementById('refreshBtn');
             const detailModal = document.getElementById('detailModal');
             const closeDetailModal = document.getElementById('closeDetailModal');
             const studentDetailContent = document.getElementById('studentDetailContent');
+            const exportBtn = document.getElementById('exportBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const totalCount = document.getElementById('totalCount');
+            const todayCount = document.getElementById('todayCount');
+            const lastSubmitTime = document.getElementById('lastSubmitTime');
+            const totalItems = document.getElementById('totalItems');
+            const showingRange = document.getElementById('showingRange');
+            const prevPageBtn = document.getElementById('prevPage');
+            const nextPageBtn = document.getElementById('nextPage');
+            const searchInput = document.getElementById('searchInput');
+            const majorFilter = document.getElementById('majorFilter');
+            const searchBtn = document.getElementById('searchBtn');
+            const changePwdModal = document.getElementById('changePwdModal');
+            const closePwdModal = document.getElementById('closePwdModal');
+            const changePwdForm = document.getElementById('changePwdForm');
+            const confirmPassword = document.getElementById('confirmPassword');
+            const passwordMismatchError = document.getElementById('passwordMismatchError');
+            
+            // 全局变量
+            let students = [];
+            let filteredStudents = [];
+            let currentPage = 1;
+            const pageSize = 10;
+            let majors = [];
+            
+            // 显示提示消息
+            function showToast(message, isSuccess = true) {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toastMessage');
+                
+                toastMessage.textContent = message;
+                toast.className = 'toast ' + (isSuccess ? 'toast-success' : 'toast-error');
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 10);
+                
+                // 3秒后自动隐藏
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
 
             // 检查登录状态
-            checkLoginStatus();
+            function checkLoginStatus() {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    // 有令牌，尝试加载数据
+                    loadStudentData();
+                    loginSection.classList.add('hidden');
+                    adminSection.classList.remove('hidden');
+                } else {
+                    // 无令牌，显示登录界面
+                    loginSection.classList.remove('hidden');
+                    adminSection.classList.add('hidden');
+                }
+            }
 
-            // 登录表单提交
+            // 登录处理
             loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
+                
                 const username = document.getElementById('username').value;
                 const password = document.getElementById('password').value;
-
-                // 发送登录请求
-                fetch('/api/login', {
+                
+                fetch('/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -142,43 +314,316 @@
                 })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('登录失败');
+                        throw new Error('登录失败，账号或密码错误');
                     }
                     return response.json();
                 })
                 .then(data => {
-                    // 保存token
-                    localStorage.setItem('token', data.token);
-                    showManagementSection();
-                    loadStudentData();
+                    if (data.success && data.token) {
+                        localStorage.setItem('token', data.token);
+                        showToast('登录成功');
+                        checkLoginStatus();
+                    } else {
+                        showToast('登录失败: ' + (data.message || '未知错误'), false);
+                    }
                 })
                 .catch(error => {
-                    loginError.textContent = '用户名或密码错误';
-                    loginError.classList.remove('hidden');
+                    showToast(error.message, false);
                 });
             });
 
             // 退出登录
             logoutBtn.addEventListener('click', function() {
                 localStorage.removeItem('token');
-                showLoginSection();
+                showToast('已退出登录');
+                checkLoginStatus();
             });
 
-            // 刷新数据
-            refreshBtn.addEventListener('click', function() {
-                loadStudentData();
-            });
-
-            // 导出Excel
-            exportExcelBtn.addEventListener('click', function() {
+            // 加载学生数据
+            function loadStudentData() {
                 const token = localStorage.getItem('token');
-                fetch('/api/export-excel', {
-                    method: 'GET',
+                
+                fetch('/students', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 })
                 .then(response => {
+                    if (response.status === 401) {
+                        // 未授权，需要重新登录
+                        localStorage.removeItem('token');
+                        checkLoginStatus();
+                        throw new Error('登录已过期，请重新登录');
+                    }
+                    if (!response.ok) {
+                        throw new Error('加载数据失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        students = data.students || [];
+                        updateStatistics();
+                        extractMajors();
+                        filterStudents(); // 应用筛选
+                    } else {
+                        showToast('加载数据失败: ' + (data.message || '未知错误'), false);
+                    }
+                })
+                .catch(error => {
+                    showToast(error.message, false);
+                });
+            }
+
+            // 提取所有专业用于筛选
+            function extractMajors() {
+                const uniqueMajors = [...new Set(students.map(s => s.major).filter(Boolean))];
+                majors = uniqueMajors;
+                
+                // 清空并填充专业筛选下拉框
+                majorFilter.innerHTML = '<option value="">所有专业</option>';
+                uniqueMajors.forEach(major => {
+                    const option = document.createElement('option');
+                    option.value = major;
+                    option.textContent = major;
+                    majorFilter.appendChild(option);
+                });
+            }
+
+            // 筛选学生
+            function filterStudents() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                const selectedMajor = majorFilter.value;
+                
+                filteredStudents = students.filter(student => {
+                    // 搜索筛选
+                    const matchesSearch = searchTerm === '' || 
+                        student.name.toLowerCase().includes(searchTerm) ||
+                        student.studentId.toLowerCase().includes(searchTerm) ||
+                        student.major.toLowerCase().includes(searchTerm);
+                    
+                    // 专业筛选
+                    const matchesMajor = selectedMajor === '' || student.major === selectedMajor;
+                    
+                    return matchesSearch && matchesMajor;
+                });
+                
+                currentPage = 1; // 重置到第一页
+                renderStudentTable();
+                updatePagination();
+            }
+
+            // 渲染学生表格
+            function renderStudentTable() {
+                const startIndex = (currentPage - 1) * pageSize;
+                const endIndex = startIndex + pageSize;
+                const currentStudents = filteredStudents.slice(startIndex, endIndex);
+                
+                if (currentStudents.length === 0) {
+                    studentTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="px-6 py-10 text-center text-gray-500">
+                                没有找到匹配的学生数据
+                            </td>
+                        </tr>
+                    `;
+                    showingRange.textContent = '0-0';
+                    return;
+                }
+                
+                studentTableBody.innerHTML = currentStudents.map((student, index) => `
+                    <tr class="table-row-hover">
+                        <td class="px-6 py-4 whitespace-nowrap">${startIndex + index + 1}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${student.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${student.major}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${student.className}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${student.studentId}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${new Date(student.submitTime).toLocaleString()}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="showStudentDetail('${student.id}')" class="text-primary hover:text-primary/80">
+                                查看详情
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                // 更新显示范围
+                const currentEnd = Math.min(endIndex, filteredStudents.length);
+                showingRange.textContent = `${startIndex + 1}-${currentEnd}`;
+                totalItems.textContent = filteredStudents.length;
+            }
+
+            // 更新分页按钮状态
+            function updatePagination() {
+                const totalPages = Math.ceil(filteredStudents.length / pageSize);
+                
+                prevPageBtn.disabled = currentPage === 1;
+                nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+            }
+
+            // 更新统计信息
+            function updateStatistics() {
+                totalCount.textContent = students.length;
+                
+                // 计算今日新增
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const todayStudents = students.filter(student => 
+                    new Date(student.submitTime) >= today
+                );
+                todayCount.textContent = todayStudents.length;
+                
+                // 最后提交时间
+                if (students.length > 0) {
+                    const sorted = [...students].sort((a, b) => 
+                        new Date(b.submitTime) - new Date(a.submitTime)
+                    );
+                    lastSubmitTime.textContent = new Date(sorted[0].submitTime).toLocaleString();
+                } else {
+                    lastSubmitTime.textContent = '暂无数据';
+                }
+            }
+
+            // 显示学生详情
+            window.showStudentDetail = function(id) {
+                const student = students.find(s => s.id === id);
+                if (!student) return;
+                
+                // 构建详情HTML
+                let detailHtml = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">序号</p>
+                            <p class="font-medium">${student.serialNumber}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">姓名</p>
+                            <p class="font-medium">${student.name}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">专业</p>
+                            <p class="font-medium">${student.major}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">班级</p>
+                            <p class="font-medium">${student.className}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">学号</p>
+                            <p class="font-medium">${student.studentId}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">性别</p>
+                            <p class="font-medium">${student.gender}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">民族</p>
+                            <p class="font-medium">${student.nationality}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">身份证号</p>
+                            <p class="font-medium">${student.idCard}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">出生年月</p>
+                            <p class="font-medium">${student.birthDate}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">宿舍</p>
+                            <p class="font-medium">${student.dormitory}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">家庭经济情况</p>
+                            <p class="font-medium">${student.economicStatus}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">户籍性质</p>
+                            <p class="font-medium">${student.householdType}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">籍贯</p>
+                            <p class="font-medium">${student.nativePlace}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">家庭住址</p>
+                            <p class="font-medium">${student.homeAddress}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">手机号</p>
+                            <p class="font-medium">${student.phone}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">父亲名字</p>
+                            <p class="font-medium">${student.fatherName}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">父亲手机号</p>
+                            <p class="font-medium">${student.fatherPhone}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">母亲姓名</p>
+                            <p class="font-medium">${student.motherName}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">母亲手机号</p>
+                            <p class="font-medium">${student.motherPhone}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">QQ号</p>
+                            <p class="font-medium">${student.qq}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">政治面貌</p>
+                            <p class="font-medium">${student.politicalStatus}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">特长</p>
+                            <p class="font-medium">${student.specialty}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">宗教信仰</p>
+                            <p class="font-medium">${student.religion}</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <p class="text-sm text-gray-500">提交时间</p>
+                            <p class="font-medium">${new Date(student.submitTime).toLocaleString()}</p>
+                        </div>
+                    </div>
+                `;
+                
+                studentDetailContent.innerHTML = detailHtml;
+                detailModal.classList.remove('hidden');
+            }
+
+            // 关闭详情模态框
+            closeDetailModal.addEventListener('click', function() {
+                detailModal.classList.add('hidden');
+            });
+
+            // 点击模态框外部关闭
+            detailModal.addEventListener('click', function(e) {
+                if (e.target === detailModal) {
+                    detailModal.classList.add('hidden');
+                }
+            });
+
+            // 导出Excel
+            exportBtn.addEventListener('click', function() {
+                const token = localStorage.getItem('token');
+                
+                fetch('/export', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        checkLoginStatus();
+                        throw new Error('登录已过期，请重新登录');
+                    }
                     if (!response.ok) {
                         throw new Error('导出失败');
                     }
@@ -189,241 +634,117 @@
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `学生信息汇总_${new Date().toLocaleDateString()}.xlsx`;
+                    const date = new Date().toLocaleDateString().replace(/\//g, '-');
+                    a.download = `学生信息汇总_${date}.xlsx`;
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
+                    showToast('导出成功');
                 })
                 .catch(error => {
-                    alert('导出失败，请重试');
+                    showToast(error.message, false);
                 });
             });
 
-            // 关闭详情模态框
-            closeDetailModal.addEventListener('click', function() {
-                detailModal.classList.add('hidden');
-            });
-
-            // 检查登录状态
-            function checkLoginStatus() {
-                const token = localStorage.getItem('token');
-                if (token) {
-                    // 验证token有效性
-                    fetch('/api/verify-token', {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            showManagementSection();
-                            loadStudentData();
-                        } else {
-                            localStorage.removeItem('token');
-                            showLoginSection();
-                        }
-                    })
-                    .catch(() => {
-                        localStorage.removeItem('token');
-                        showLoginSection();
-                    });
-                } else {
-                    showLoginSection();
+            // 分页按钮事件
+            prevPageBtn.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderStudentTable();
+                    updatePagination();
                 }
-            }
+            });
 
-            // 显示登录区域
-            function showLoginSection() {
-                loginSection.classList.remove('hidden');
-                managementSection.classList.add('hidden');
-                userInfo.classList.add('hidden');
-            }
+            nextPageBtn.addEventListener('click', function() {
+                const totalPages = Math.ceil(filteredStudents.length / pageSize);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderStudentTable();
+                    updatePagination();
+                }
+            });
 
-            // 显示管理区域
-            function showManagementSection() {
-                loginSection.classList.add('hidden');
-                managementSection.classList.remove('hidden');
-                userInfo.classList.remove('hidden');
-            }
+            // 搜索和筛选事件
+            searchBtn.addEventListener('click', filterStudents);
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    filterStudents();
+                }
+            });
+            majorFilter.addEventListener('change', filterStudents);
 
-            // 加载学生数据
-            function loadStudentData() {
-                const token = localStorage.getItem('token');
-                fetch('/api/students', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('获取数据失败');
-                    }
-                    return response.json();
-                })
-                .then(students => {
-                    renderStudentTable(students);
-                })
-                .catch(error => {
-                    alert('获取数据失败，请重试');
-                });
-            }
+            // 密码确认验证
+            confirmPassword.addEventListener('blur', function() {
+                const newPassword = document.getElementById('newPassword').value;
+                if (this.value !== newPassword) {
+                    passwordMismatchError.classList.remove('hidden');
+                } else {
+                    passwordMismatchError.classList.add('hidden');
+                }
+            });
 
-            // 渲染学生表格
-            function renderStudentTable(students) {
-                studentTableBody.innerHTML = '';
+            // 修改密码表单提交
+            changePwdForm.addEventListener('submit', function(e) {
+                e.preventDefault();
                 
-                if (students.length === 0) {
-                    noDataMessage.classList.remove('hidden');
+                const oldPassword = document.getElementById('oldPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPwd = confirmPassword.value;
+                
+                // 客户端验证
+                if (newPassword !== confirmPwd) {
+                    passwordMismatchError.classList.remove('hidden');
                     return;
                 }
                 
-                noDataMessage.classList.add('hidden');
+                if (newPassword.length < 6) {
+                    showToast('新密码长度不能少于6位', false);
+                    return;
+                }
                 
-                students.forEach(student => {
-                    const row = document.createElement('tr');
-                    row.className = 'hover:bg-gray-50 transition-colors';
-                    row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap">${student.serialNumber}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${student.name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${student.major}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${student.className}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${student.studentId}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <button class="text-primary hover:text-primary/80 view-detail" data-id="${student.id}">
-                                <i class="fa fa-eye mr-1"></i> 查看详情
-                            </button>
-                        </td>
-                    `;
-                    studentTableBody.appendChild(row);
-                });
-
-                // 添加查看详情事件
-                document.querySelectorAll('.view-detail').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const studentId = this.getAttribute('data-id');
-                        showStudentDetail(studentId);
-                    });
-                });
-            }
-
-            // 显示学生详情
-            function showStudentDetail(studentId) {
                 const token = localStorage.getItem('token');
-                fetch(`/api/students/${studentId}`, {
+                
+                fetch('/change-password', {
+                    method: 'POST',
                     headers: {
+                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
-                    }
+                    },
+                    body: JSON.stringify({ oldPassword, newPassword })
                 })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error('获取详情失败');
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        checkLoginStatus();
+                        throw new Error('登录已过期，请重新登录');
                     }
                     return response.json();
                 })
-                .then(student => {
-                    // 渲染详情内容
-                    studentDetailContent.innerHTML = `
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-sm text-gray-500">序号</p>
-                                <p class="font-medium">${student.serialNumber}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">姓名</p>
-                                <p class="font-medium">${student.name}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">专业</p>
-                                <p class="font-medium">${student.major}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">班级</p>
-                                <p class="font-medium">${student.className}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">学号</p>
-                                <p class="font-medium">${student.studentId}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">性别</p>
-                                <p class="font-medium">${student.gender}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">民族</p>
-                                <p class="font-medium">${student.nationality}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">身份证号</p>
-                                <p class="font-medium">${student.idCard}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">出生年月</p>
-                                <p class="font-medium">${student.birthDate}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">宿舍</p>
-                                <p class="font-medium">${student.dormitory}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">家庭经济情况</p>
-                                <p class="font-medium">${student.economicStatus}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">户籍性质</p>
-                                <p class="font-medium">${student.householdType}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">籍贯</p>
-                                <p class="font-medium">${student.nativePlace}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">家庭住址</p>
-                                <p class="font-medium">${student.homeAddress}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">手机号</p>
-                                <p class="font-medium">${student.phone}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">父亲名字</p>
-                                <p class="font-medium">${student.fatherName}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">父亲手机号</p>
-                                <p class="font-medium">${student.fatherPhone}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">母亲姓名</p>
-                                <p class="font-medium">${student.motherName}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">母亲手机号</p>
-                                <p class="font-medium">${student.motherPhone}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">QQ号</p>
-                                <p class="font-medium">${student.qq}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">政治面貌</p>
-                                <p class="font-medium">${student.politicalStatus}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">特长</p>
-                                <p class="font-medium">${student.specialty}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">宗教信仰</p>
-                                <p class="font-medium">${student.religion}</p>
-                            </div>
-                        </div>
-                    `;
-                    detailModal.classList.remove('hidden');
+                .then(data => {
+                    if (data.success) {
+                        showToast('密码修改成功，请重新登录');
+                        closePwdModal.click();
+                        changePwdForm.reset();
+                        localStorage.removeItem('token');
+                        checkLoginStatus();
+                    } else {
+                        showToast(data.message || '密码修改失败', false);
+                    }
                 })
                 .catch(error => {
-                    alert('获取详情失败，请重试');
+                    showToast(error.message, false);
                 });
-            }
+            });
+
+            // 关闭密码模态框
+            closePwdModal.addEventListener('click', function() {
+                changePwdModal.classList.add('hidden');
+                changePwdForm.reset();
+                passwordMismatchError.classList.add('hidden');
+            });
+
+            // 初始化
+            checkLoginStatus();
         });
     </script>
 </body>

@@ -15,7 +15,12 @@
                         secondary: '#10B981',
                         warning: '#F59E0B',
                         danger: '#EF4444',
-                    }
+                        light: '#F3F4F6',
+                        dark: '#1F2937'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
                 }
             }
         }
@@ -34,6 +39,18 @@
             .error-message {
                 @apply text-danger text-xs mt-1 hidden;
             }
+            .toast {
+                @apply fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none;
+            }
+            .toast.show {
+                @apply opacity-100 translate-y-0 pointer-events-auto;
+            }
+            .toast-success {
+                @apply bg-secondary text-white;
+            }
+            .toast-error {
+                @apply bg-danger text-white;
+            }
         }
     </style>
 </head>
@@ -41,7 +58,7 @@
     <div class="container mx-auto px-4 py-8 max-w-3xl">
         <div class="bg-white rounded-xl shadow-md p-6 md:p-8 mb-6">
             <div class="text-center mb-8">
-                <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-gray-800 mb-2">学生信息采集表</h1>
+                <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-dark mb-2">学生信息采集表</h1>
                 <p class="text-gray-500">请准确填写以下信息，带 <span class="text-danger">*</span> 为必填项</p>
             </div>
 
@@ -233,7 +250,7 @@
 
                 <!-- 提交按钮 -->
                 <div class="pt-4">
-                    <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-md transition duration-200 flex items-center justify-center">
+                    <button type="submit" id="submitBtn" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-md transition duration-200 flex items-center justify-center">
                         <i class="fa fa-check mr-2"></i> 提交信息
                     </button>
                 </div>
@@ -245,33 +262,31 @@
         </div>
     </div>
 
-    <!-- 成功提交弹窗 -->
-    <div id="successModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 transform transition-all">
-            <div class="text-center">
-                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fa fa-check text-2xl text-green-500"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2">提交成功</h3>
-                <p class="text-gray-600 mb-6">您的信息已成功提交，感谢您的配合</p>
-                <button id="closeModal" class="bg-primary hover:bg-primary/90 text-white font-medium py-2 px-6 rounded-md transition duration-200">
-                    确定
-                </button>
-            </div>
-        </div>
+    <!-- 提示消息组件 -->
+    <div id="toast" class="toast">
+        <span id="toastMessage"></span>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('studentForm');
-            const successModal = document.getElementById('successModal');
-            const closeModal = document.getElementById('closeModal');
+            const submitBtn = document.getElementById('submitBtn');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
 
-            // 关闭弹窗
-            closeModal.addEventListener('click', function() {
-                successModal.classList.add('hidden');
-                form.reset();
-            });
+            // 显示提示消息
+            function showToast(message, isSuccess = true) {
+                toastMessage.textContent = message;
+                toast.className = 'toast ' + (isSuccess ? 'toast-success' : 'toast-error');
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 10);
+                
+                // 3秒后自动隐藏
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
 
             // 表单提交处理
             form.addEventListener('submit', function(e) {
@@ -305,11 +320,16 @@
 
                 // 如果验证通过，发送数据到服务器
                 if (isValid) {
+                    // 显示加载状态
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 提交中...';
+
+                    // 收集表单数据
                     const formData = new FormData(form);
                     const data = Object.fromEntries(formData.entries());
-                    
-                    // 发送数据到后端
-                    fetch('/api/submit', {
+
+                    // 发送数据到服务器
+                    fetch('/submit', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -317,16 +337,27 @@
                         body: JSON.stringify(data)
                     })
                     .then(response => {
-                        if (response.ok) {
-                            // 显示成功弹窗
-                            successModal.classList.remove('hidden');
+                        if (!response.ok) {
+                            throw new Error('网络响应不正常');
+                        }
+                        return response.json();
+                    })
+                    .then(result => {
+                        if (result.success) {
+                            showToast('提交成功！感谢您的配合。');
+                            form.reset(); // 重置表单
                         } else {
-                            alert('提交失败，请稍后重试');
+                            showToast(result.message || '提交失败，请重试', false);
                         }
                     })
                     .catch(error => {
                         console.error('提交错误:', error);
-                        alert('提交失败，请检查网络连接');
+                        showToast('提交失败，请检查网络连接后重试', false);
+                    })
+                    .finally(() => {
+                        // 恢复按钮状态
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fa fa-check mr-2"></i> 提交信息';
                     });
                 } else {
                     // 滚动到第一个错误字段
@@ -369,7 +400,7 @@
                 });
             });
 
-            // 验证函数 - 与之前相同
+            // 验证必填字段
             function validateRequiredField(fieldId) {
                 const field = document.getElementById(fieldId);
                 const errorElement = document.getElementById(`${fieldId}Error`);
@@ -383,6 +414,7 @@
                 }
             }
 
+            // 验证性别选择
             function validateGender() {
                 const genderSelected = document.querySelector('input[name="gender"]:checked');
                 const errorElement = document.getElementById('genderError');
@@ -396,6 +428,7 @@
                 }
             }
 
+            // 验证下拉选择字段
             function validateSelectField(fieldId) {
                 const field = document.getElementById(fieldId);
                 const errorElement = document.getElementById(`${fieldId}Error`);
@@ -409,9 +442,11 @@
                 }
             }
 
+            // 验证身份证号
             function validateIdCard() {
                 const idCard = document.getElementById('idCard').value.trim();
                 const errorElement = document.getElementById('idCardError');
+                // 18位身份证号正则，最后一位可以是数字或大写X
                 const idCardRegex = /^[1-9]\d{5}(19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dX]$/;
                 
                 if (!idCard || idCard.length !== 18 || !idCardRegex.test(idCard)) {
@@ -423,9 +458,11 @@
                 }
             }
 
+            // 验证出生日期格式
             function validateBirthDate() {
                 const birthDate = document.getElementById('birthDate').value.trim();
                 const errorElement = document.getElementById('birthDateError');
+                // 匹配xx年xx月xx日格式
                 const dateRegex = /^\d{2,4}年(0[1-9]|1[0-2])月(0[1-9]|[12]\d|3[01])日$/;
                 
                 if (!birthDate || !dateRegex.test(birthDate)) {
@@ -437,9 +474,11 @@
                 }
             }
 
+            // 验证手机号
             function validatePhone(fieldId) {
                 const phone = document.getElementById(fieldId).value.trim();
                 const errorElement = document.getElementById(`${fieldId}Error`);
+                // 11位数字手机号正则
                 const phoneRegex = /^1[3-9]\d{9}$/;
                 
                 if (!phone || phone.length !== 11 || !phoneRegex.test(phone)) {
@@ -451,12 +490,14 @@
                 }
             }
 
+            // 显示错误信息
             function showError(element) {
                 element.classList.remove('hidden');
                 element.parentElement.querySelector('input, select').classList.add('border-danger');
                 element.parentElement.querySelector('input, select').classList.remove('border-gray-300');
             }
 
+            // 隐藏错误信息
             function hideError(element) {
                 element.classList.add('hidden');
                 element.parentElement.querySelector('input, select').classList.remove('border-danger');
