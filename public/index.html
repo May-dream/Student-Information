@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>学生信息采集</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-primary: #3b82f6;
+      --font-inter: 'Inter', sans-serif;
+    }
+    @utility smooth-transition {
+      transition: all 0.3s ease-in-out;
+    }
+  </style>
+</head>
+<body class="font-inter bg-gray-50 min-h-screen">
+  <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">学生信息采集表</h1>
+    <form id="studentForm" class="space-y-6">
+      <!-- 基础信息 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700 mb-1">姓名 <span class="text-red-500">*</span></label>
+          <input type="text" id="name" name="name" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition">
+        </div>
+        <div>
+          <label for="studentId" class="block text-sm font-medium text-gray-700 mb-1">学号 <span class="text-red-500">*</span></label>
+          <input type="text" id="studentId" name="studentId" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition">
+        </div>
+        <div>
+          <label for="major" class="block text-sm font-medium text-gray-700 mb-1">专业 <span class="text-red-500">*</span></label>
+          <input type="text" id="major" name="major" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition">
+        </div>
+        <div>
+          <label for="className" class="block text-sm font-medium text-gray-700 mb-1">所在班级 <span class="text-red-500">*</span></label>
+          <input type="text" id="className" name="className" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">性别 <span class="text-red-500">*</span></label>
+          <div class="flex space-x-4">
+            <label class="inline-flex items-center">
+              <input type="radio" name="gender" value="男" checked class="mr-2"> 男
+            </label>
+            <label class="inline-flex items-center">
+              <input type="radio" name="gender" value="女" class="mr-2"> 女
+            </label>
+          </div>
+        </div>
+        <div>
+          <label for="ethnicity" class="block text-sm font-medium text-gray-700 mb-1">民族 <span class="text-red-500">*</span></label>
+          <input type="text" id="ethnicity" name="ethnicity" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition" placeholder="如：汉族">
+        </div>
+        <div>
+          <label for="idCard" class="block text-sm font-medium text-gray-700 mb-1">身份证号 <span class="text-red-500">*</span></label>
+          <input type="text" id="idCard" name="idCard" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition" placeholder="18位，最后一位为X需大写">
+          <p class="text-xs text-gray-500 mt-1">格式：18位数字，最后一位可为大写X</p>
+        </div>
+        <div>
+          <label for="birthDate" class="block text-sm font-medium text-gray-700 mb-1">出生年月 <span class="text-red-500">*</span></label>
+          <input type="text" id="birthDate" name="birthDate" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition" placeholder="如：2000年09月01日">
+          <p class="text-xs text-gray-500 mt-1">格式：xx年xx月xx日</p>
+        </div>
+        <div>
+          <label for="dormitory" class="block text-sm font-medium text-gray-700 mb-1">宿舍 <span class="text-red-500">*</span></label>
+          <input type="text" id="dormitory" name="dormitory" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition" placeholder="如：1栋302室">
+        </div>
+        <div>
+          <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">手机号 <span class="text-red-500">*</span></label>
+          <input type="text" id="phone" name="phone" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition" placeholder="11位数字">
+          <p class="text-xs text-gray-500 mt-1">格式：11位数字</p>
+        </div>
+      </div>
+
+      <!-- 家庭信息 -->
+      <div class="border-t border-gray-200 pt-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">家庭信息</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="familyEconomy" class="block text-sm font-medium text-gray-700 mb-1">家庭经济情况 <span class="text-red-500">*</span></label>
+            <input type="text" id="familyEconomy" name="familyEconomy" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition" placeholder="如：一般、困难">
+          </div>
+          <div>
+            <label for="householdType" class="block text-sm font-medium text-gray-700 mb-1">户籍性质 <span class="text-red-500">*</span></label>
+            <select id="householdType" name="householdType" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition">
+              <option value="">请选择</option>
+              <option value="农村">农村</option>
+              <option value="城市">城市</option>
+            </select>
+          </div>
+          <div>
+            <label for="nativePlace" class="block text-sm font-medium text-gray-700 mb-1">籍贯 <span class="text-red-500">*</span></label>
+            <input type="text" id="nativePlace" name="nativePlace" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition" placeholder="如：四川省成都市">
+          </div>
+          <div>
+            <label for="homeAddress" class="block text-sm font-medium text-gray-700 mb-1">家庭住址 <span class="text-red-500">*</span></label>
+            <input type="text" id="homeAddress" name="homeAddress" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition" placeholder="详细家庭地址">
+          </div>
+          <div>
+            <label for="fatherName" class="block text-sm font-medium text-gray-700 mb-1">父亲名字 <span class="text-red-500">*</span></label>
+            <input type="text" id="fatherName" name="fatherName" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition">
+          </div>
+          <div>
+            <label for="fatherPhone" class="block text-sm font-medium text-gray-700 mb-1">父亲手机号 <span class="text-red-500">*</span></label>
+            <input type="text" id="fatherPhone" name="fatherPhone" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition" placeholder="11位数字">
+            <p class="text-xs text-gray-500 mt-1">格式：11位数字</p>
+          </div>
+          <div>
+            <label for="motherName" class="block text-sm font-medium text-gray-700 mb-1">母亲姓名 <span class="text-red-500">*</span></label>
+            <input type="text" id="motherName" name="motherName" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition">
+          </div>
+          <div>
+            <label for="motherPhone" class="block text-sm font-medium text-gray-700 mb-1">母亲手机号 <span class="text-red-500">*</span></label>
+            <input type="text" id="motherPhone" name="motherPhone" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition" placeholder="11位数字">
+            <p class="text-xs text-gray-500 mt-1">格式：11位数字</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 其他信息 -->
+      <div class="border-t border-gray-200 pt-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">其他信息</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="qq" class="block text-sm font-medium text-gray-700 mb-1">QQ号 <span class="text-red-500">*</span></label>
+            <input type="text" id="qq" name="qq" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition" placeholder="QQ号码">
+          </div>
+          <div>
+            <label for="politicalStatus" class="block text-sm font-medium text-gray-700 mb-1">政治面貌 <span class="text-red-500">*</span></label>
+            <select id="politicalStatus" name="politicalStatus" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition">
+              <option value="">请选择</option>
+              <option value="中共党员">中共党员</option>
+              <option value="共青团员">共青团员</option>
+              <option value="群众">群众</option>
+            </select>
+          </div>
+          <div>
+            <label for="specialty" class="block text-sm font-medium text-gray-700 mb-1">特长 <span class="text-red-500">*</span></label>
+            <input type="text" id="specialty" name="specialty" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition" placeholder="如：绘画、篮球">
+          </div>
+          <div>
+            <label for="religiousBelief" class="block text-sm font-medium text-gray-700 mb-1">宗教信仰 <span class="text-red-500">*</span></label>
+            <input type="text" id="religiousBelief" name="religiousBelief" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition" placeholder="如：无、佛教">
+          </div>
+        </div>
+      </div>
+
+      <button type="button" onclick="submitForm()" 
+        class="w-full bg-primary text-white py-3 px-4 rounded-md hover:bg-blue-700 smooth-transition font-medium">
+        提交信息
+      </button>
+    </form>
+  </div>
+
+  <script>
+    // 验证身份证号（18位，最后一位可为大写X）
+    function validateIdCard(idCard) {
+      const reg = /(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
+      if (!reg.test(idCard)) {
+        return { valid: false, message: '身份证号格式错误，需为18位数字，最后一位可为大写X' };
+      }
+      // 验证最后一位X是否为大写
+      if (idCard.charAt(17).toLowerCase() === 'x' && idCard.charAt(17) !== 'X') {
+        return { valid: false, message: '身份证号最后一位X需为大写' };
+      }
+      return { valid: true };
+    }
+
+    // 验证手机号（11位数字）
+    function validatePhone(phone) {
+      const reg = /^1\d{10}$/;
+      if (!reg.test(phone)) {
+        return { valid: false, message: '手机号格式错误，需为11位数字' };
+      }
+      return { valid: true };
+    }
+
+    // 验证出生年月（xx年xx月xx日格式）
+    function validateBirthDate(birthDate) {
+      const reg = /^\d{4}年\d{1,2}月\d{1,2}日$/;
+      if (!reg.test(birthDate)) {
+        return { valid: false, message: '出生年月格式错误，需为“xxxx年xx月xx日”格式' };
+      }
+      // 简单验证月份和日期范围
+      const [year, month, day] = birthDate.match(/\d+/g);
+      if (parseInt(month) < 1 || parseInt(month) > 12) {
+        return { valid: false, message: '出生年月的月份需在1-12之间' };
+      }
+      if (parseInt(day) < 1 || parseInt(day) > 31) {
+        return { valid: false, message: '出生年月的日期需在1-31之间' };
+      }
+      return { valid: true };
+    }
+
+    // 验证户籍性质（只能是农村或城市）
+    function validateHouseholdType(householdType) {
+      if (householdType !== '农村' && householdType !== '城市') {
+        return { valid: false, message: '户籍性质需选择“农村”或“城市”' };
+      }
+      return { valid: true };
+    }
+
+    // 验证政治面貌（只能是中共党员、共青团员、群众）
+    function validatePoliticalStatus(politicalStatus) {
+      const validStatus = ['中共党员', '共青团员', '群众'];
+      if (!validStatus.includes(politicalStatus)) {
+        return { valid: false, message: '政治面貌需选择“中共党员”“共青团员”或“群众”' };
+      }
+      return { valid: true };
+    }
+
+    function submitForm() {
+      const form = document.getElementById('studentForm');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      // 逐个字段验证
+      // 身份证号验证
+      const idCardResult = validateIdCard(data.idCard);
+      if (!idCardResult.valid) {
+        alert(idCardResult.message);
+        document.getElementById('idCard').focus();
+        return;
+      }
+
+      // 手机号验证
+      const phoneResult = validatePhone(data.phone);
+      if (!phoneResult.valid) {
+        alert(phoneResult.message);
+        document.getElementById('phone').focus();
+        return;
+      }
+
+      // 父亲手机号验证
+      const fatherPhoneResult = validatePhone(data.fatherPhone);
+      if (!fatherPhoneResult.valid) {
+        alert(fatherPhoneResult.message);
+        document.getElementById('fatherPhone').focus();
+        return;
+      }
+
+      // 母亲手机号验证
+      const motherPhoneResult = validatePhone(data.motherPhone);
+      if (!motherPhoneResult.valid) {
+        alert(motherPhoneResult.message);
+        document.getElementById('motherPhone').focus();
+        return;
+      }
+
+      // 出生年月验证
+      const birthDateResult = validateBirthDate(data.birthDate);
+      if (!birthDateResult.valid) {
+        alert(birthDateResult.message);
+        document.getElementById('birthDate').focus();
+        return;
+      }
+
+      // 户籍性质验证
+      if (data.householdType) {
+        const householdResult = validateHouseholdType(data.householdType);
+        if (!householdResult.valid) {
+          alert(householdResult.message);
+          document.getElementById('householdType').focus();
+          return;
+        }
+      } else {
+        alert('请选择户籍性质');
+        document.getElementById('householdType').focus();
+        return;
+      }
+
+      // 政治面貌验证
+      if (data.politicalStatus) {
+        const politicalResult = validatePoliticalStatus(data.politicalStatus);
+        if (!politicalResult.valid) {
+          alert(politicalResult.message);
+          document.getElementById('politicalStatus').focus();
+          return;
+        }
+      } else {
+        alert('请选择政治面貌');
+        document.getElementById('politicalStatus').focus();
+        return;
+      }
+
+      // 其他非空字段验证
+      const requiredFields = [
+        'name', 'studentId', 'major', 'className', 'ethnicity', 
+        'dormitory', 'familyEconomy', 'nativePlace', 'homeAddress', 
+        'fatherName', 'motherName', 'qq', 'specialty', 'religiousBelief'
+      ];
+      for (const field of requiredFields) {
+        if (!data[field]) {
+          alert(`请填写“${field === 'className' ? '所在班级' : field === 'familyEconomy' ? '家庭经济情况' : field === 'nativePlace' ? '籍贯' : field === 'homeAddress' ? '家庭住址' : field === 'fatherName' ? '父亲名字' : field === 'motherName' ? '母亲姓名' : field === 'qq' ? 'QQ号' : field === 'specialty' ? '特长' : field === 'religiousBelief' ? '宗教信仰' : field}”字段`);
+          document.getElementById(field).focus();
+          return;
+        }
+      }
+
+      // 禁用按钮防止重复提交
+      const button = form.querySelector('button');
+      button.disabled = true;
+      button.innerHTML = '提交中...';
+
+      // 发送异步请求到后端
+      fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('提交成功！感谢您的配合～');
+          form.reset(); // 重置表单
+        } else {
+          alert('提交失败：' + data.message);
+        }
+      })
+      .catch(err => {
+        alert('网络错误，请稍后重试：' + err.message);
+      })
+      .finally(() => {
+        button.disabled = false;
+        button.innerHTML = '提交信息';
+      });
+    }
+  </script>
+</body>
+</html>

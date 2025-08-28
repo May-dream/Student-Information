@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>学生信息管理</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-primary: #3b82f6;
+      --font-inter: 'Inter', sans-serif;
+    }
+    @utility smooth-transition {
+      transition: all 0.3s ease-in-out;
+    }
+  </style>
+</head>
+<body class="font-inter bg-gray-50 min-h-screen">
+  <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">学生信息管理</h1>
+      <div class="flex space-x-3">
+        <button id="exportExcel" 
+          class="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 smooth-transition flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          导出Excel
+        </button>
+        <button id="logout" 
+          class="bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 smooth-transition">
+          退出登录
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <p class="text-sm text-gray-500">总提交人数</p>
+        <p id="totalCount" class="text-2xl font-bold text-gray-800">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <p class="text-sm text-gray-500">今日新增</p>
+        <p id="todayCount" class="text-2xl font-bold text-green-600">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <p class="text-sm text-gray-500">最后提交时间</p>
+        <p id="lastSubmitTime" class="text-lg text-gray-700">暂无数据</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <input type="text" id="searchInput" placeholder="搜索（姓名/学号/专业/身份证号等）" 
+            class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition">
+          <select id="majorFilter" 
+            class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary smooth-transition">
+            <option value="">所有专业</option>
+          </select>
+        </div>
+        <button id="searchBtn" 
+          class="bg-primary text-white py-2 px-6 rounded-md hover:bg-blue-700 smooth-transition">
+          搜索
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">序号</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">姓名</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">学号</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">专业</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">班级</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">性别</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">民族</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">身份证号</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">出生年月</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">宿舍</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">手机号</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">家庭经济情况</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">户籍性质</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">籍贯</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">家庭住址</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">父亲名字</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">父亲手机号</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">母亲姓名</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">母亲手机号</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">QQ号</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">政治面貌</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">特长</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">宗教信仰</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">提交时间</th>
+          </tr>
+        </thead>
+        <tbody id="studentTableBody" class="bg-white divide-y divide-gray-200">
+          <tr>
+            <td colspan="25" class="px-6 py-12 text-center text-gray-500">没有找到匹配的学生数据</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="px-6 py-4 flex items-center justify-between border-t border-gray-200">
+        <div class="text-sm text-gray-500" id="paginationInfo">显示 0-0 条，共 0 条</div>
+        <div class="flex space-x-2">
+          <button id="prevPage" disabled 
+            class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50 smooth-transition">上一页</button>
+          <button id="nextPage" disabled 
+            class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50 smooth-transition">下一页</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    // 页面加载时自动获取数据
+    window.onload = function() {
+      fetchStudentData();
+      document.getElementById('searchBtn').addEventListener('click', fetchStudentData);
+      document.getElementById('exportExcel').addEventListener('click', exportToExcel);
+    };
+
+    // 获取学生数据（支持搜索和筛选）
+    function fetchStudentData() {
+      const search = document.getElementById('searchInput').value;
+      const major = document.getElementById('majorFilter').value;
+      
+      fetch(`/api/students?search=${search}&major=${major}`)
+        .then(res => res.json())
+        .then(data => {
+          renderStudentTable(data.list);
+          document.getElementById('totalCount').textContent = data.total;
+          document.getElementById('todayCount').textContent = data.today;
+          document.getElementById('lastSubmitTime').textContent = data.lastTime || '暂无数据';
+          document.getElementById('paginationInfo').textContent = `显示 1-${data.list.length} 条，共 ${data.total} 条`;
+        })
+        .catch(err => {
+          alert('获取数据失败：' + err.message);
+        });
+    }
+
+    // 渲染学生表格
+    function renderStudentTable(students) {
+      const tbody = document.getElementById('studentTableBody');
+      if (!students || students.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="25" class="px-6 py-12 text-center text-gray-500">没有找到匹配的学生数据</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = students.map((s, index) => `
+        <tr class="hover:bg-gray-50 smooth-transition">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${index + 1}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${s.name}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.studentId}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.major}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.className}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.gender}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.ethnicity}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.idCard}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.birthDate}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.dormitory}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.phone}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.familyEconomy}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.householdType}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.nativePlace}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.homeAddress}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.fatherName}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.fatherPhone}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.motherName}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.motherPhone}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.qq}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.politicalStatus}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.specialty}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.religiousBelief}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(s.submitTime).toLocaleString()}</td>
+        </tr>
+      `).join('');
+    }
+
+    // 导出Excel
+    function exportToExcel() {
+      fetch('/api/students')
+        .then(res => res.json())
+        .then(data => {
+          const students = data.list;
+          if (!students || students.length === 0) {
+            alert('暂无数据可导出');
+            return;
+          }
+
+          // 构造Excel数据
+          const exportData = students.map(s => ({
+            '序号': index + 1,
+            '姓名': s.name,
+            '学号': s.studentId,
+            '专业': s.major,
+            '班级': s.className,
+            '性别': s.gender,
+            '民族': s.ethnicity,
+            '身份证号': s.idCard,
+            '出生年月': s.birthDate,
+            '宿舍': s.dormitory,
+            '手机号': s.phone,
+            '家庭经济情况': s.familyEconomy,
+            '户籍性质': s.householdType,
+            '籍贯': s.nativePlace,
+            '家庭住址': s.homeAddress,
+            '父亲名字': s.fatherName,
+            '父亲手机号': s.fatherPhone,
+            '母亲姓名': s.motherName,
+            '母亲手机号': s.motherPhone,
+            'QQ号': s.qq,
+            '政治面貌': s.politicalStatus,
+            '特长': s.specialty,
+            '宗教信仰': s.religiousBelief,
+            '提交时间': new Date(s.submitTime).toLocaleString()
+          }));
+          const ws = XLSX.utils.json_to_sheet(exportData);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, '学生信息');
+          XLSX.writeFile(wb, '学生信息汇总.xlsx');
+        })
+        .catch(err => {
+          alert('导出失败：' + err.message);
+        });
+    }
+  </script>
+</body>
+</html>
